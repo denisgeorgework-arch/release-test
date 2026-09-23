@@ -32,6 +32,15 @@ jobs:
           fi
 
           echo "Versions match!"
+          
+      - name: Check release version
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if gh release view "${{ inputs.version_tag }}" > /dev/null 2>&1; then
+            echo "Release ${{ inputs.version_tag }} already exists!"
+            exit 1
+          fi
 
   release:
     needs: version-check
