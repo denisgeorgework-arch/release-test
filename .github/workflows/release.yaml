@@ -40,6 +40,12 @@ jobs:
           helm package .
           echo "Helm chart packaged successfully"
       
+      - name: Create local git tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "${{ inputs.version_tag }}" -m "Release ${{ inputs.version_tag }}"
+          
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
