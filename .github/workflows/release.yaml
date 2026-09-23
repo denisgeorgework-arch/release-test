@@ -34,6 +34,7 @@ jobs:
           echo "Versions match!"
 
   release:
+    needs: version-check
     permissions:
         contents: write
     runs-on: ubuntu-latest
