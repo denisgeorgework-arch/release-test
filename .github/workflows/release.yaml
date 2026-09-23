@@ -9,9 +9,7 @@ on:
           type: string
 
 jobs:
-  release:
-    permissions:
-        contents: write
+  version-check:
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
@@ -35,6 +33,15 @@ jobs:
 
           echo "Versions match!"
 
+  release:
+    permissions:
+        contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
             
       - name: Setup Helm
         uses: azure/setup-helm@v5
