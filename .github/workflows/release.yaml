@@ -1,28 +1,47 @@
 name: Release Charts
 
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
+    inputs:
+        version_tag:
+          description: 'The target version tag for the release (e.g., v1.2.3)'
+          required: true
+          type: string
 
 jobs:
   release:
+    permissions:
+        contents: write
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
+      - name: Check out code
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
+            
+      - name: Setup Helm
+        uses: azure/setup-helm@v5
+        with:
+          version: v3.22.0
 
-      - name: Configure Git
+      # Release Notes
+      - name: Setup git-cliff
+        uses: kenji-miyake/setup-git-cliff@v2
+
+      - name: Generate release notes
         run: |
-          git config user.name "$GITHUB_ACTOR"
-          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
-
-      - name: Install Helm
-        uses: azure/setup-helm@v1
-
-      - name: Run chart-releaser
-        uses: helm/chart-releaser-action@v1.2.0
-        env:
-          CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          git-cliff \
+            --tag "${{ inputs.version_tag }}" \
+            -o RELEASE_NOTES.md
+      
+      - name: Package Helm chart
+        run: |
+          helm package .
+          echo "Helm chart packaged successfully"
+      
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ inputs.version_tag }}
+          name: ${{ inputs.version_tag }}
+          body_path: RELEASE_NOTES.md
