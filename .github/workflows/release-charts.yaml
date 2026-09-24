@@ -68,6 +68,18 @@ jobs:
           helm package .
           echo "Helm chart packaged successfully"
       
+      - name: Login to Quay
+        run: |
+          echo "${{ secrets.QUAY_PASSWORD }}" | \
+            helm registry login quay.io \
+            --username "${{ secrets.QUAY_USERNAME }}" \
+            --password-stdin
+
+      - name: Push Helm chart to Quay
+        run: |
+          helm push netra-helm-chart/*.tgz oci://quay.io/testorgkv/
+          echo "Helm chart pushed to Quay successfully"
+      
       - name: Create GitHub Release
         run: |
           VERSION="${{ inputs.version_tag }}"
