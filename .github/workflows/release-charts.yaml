@@ -51,6 +51,7 @@ jobs:
         contents: write
     runs-on: ubuntu-latest
     steps:
+
       - name: Check out code
         uses: actions/checkout@v4
         with:
@@ -71,15 +72,14 @@ jobs:
         run: |
           VERSION="${{ inputs.version_tag }}"
           VERSION="${VERSION#v}"
-
           PREVIOUS_VERSION=$(gh release list --limit 1 --json tagName --jq '.[0].tagName' 2>/dev/null || true)
 
           if [ -n "$PREVIOUS_VERSION" ]; then
             echo "Previous release: $PREVIOUS_VERSION"
-
             NOTES=$(git log "$PREVIOUS_VERSION"..HEAD \
               --pretty=format:"- %s (%h)" \
               -- netra-helm-chart/)
+
           else
             echo "No previous release found"
 
@@ -92,10 +92,14 @@ jobs:
             NOTES="No changes to netra-helm-chart since the previous release."
           fi
 
+          NOTES="## Release Notes
+
+          $NOTES"
+
           gh release create "$VERSION" \
             netra-helm-chart/*.tgz \
             --title "Netra Helm Chart $VERSION" \
-            --notes "$NOTES"
+            --notes "## Release Notes\n $NOTES"
 
           echo "Release $VERSION is available."
         env:
