@@ -91,11 +91,7 @@ jobs:
           if [ -z "$NOTES" ]; then
             NOTES="No changes to netra-helm-chart since the previous release."
           fi
-
-          NOTES="## Release Notes
-
-          $NOTES"
-
+          
           gh release create "$VERSION" \
             netra-helm-chart/*.tgz \
             --title "Netra Helm Chart $VERSION" \
