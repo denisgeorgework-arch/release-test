@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
         version_tag:
-          description: 'The target version tag for the release (e.g., 1.2.3)'
+          description: 'The target version tag for the release (e.g., 1.2.3, v1.2.3)'
           required: true
           type: string
 
@@ -19,7 +19,7 @@ jobs:
 
       - name: Validate chart version
         run: |
-          CHART_VERSION=$(grep '^version:' charts/hello-world/Chart.yaml | awk '{print $2}')
+          CHART_VERSION=$(grep '^version:' netra-helm-chart/Chart.yaml | awk '{print $2}')
           INPUT_VERSION="${{ inputs.version_tag }}"
           INPUT_VERSION="${INPUT_VERSION#v}"
 
@@ -37,8 +37,11 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          if gh release view "${{ inputs.version_tag }}" > /dev/null 2>&1; then
-            echo "Release ${{ inputs.version_tag }} already exists!"
+          VERSION="${{ inputs.version_tag }}"
+          VERSION="${VERSION#v}"
+
+          if gh release view "$VERSION" > /dev/null 2>&1; then
+            echo "Release $VERSION already exists!"
             exit 1
           fi
 
@@ -60,15 +63,18 @@ jobs:
  
       - name: Package Helm chart
         run: |
-          cd charts/hello-world
+          cd netra-helm-chart
           helm package .
           echo "Helm chart packaged successfully"
       
       - name: Create GitHub Release
         run: |
-          gh release create "${{ inputs.version_tag }}" \
-            charts/hello-world/*.tgz \
+          VERSION="${{ inputs.version_tag }}"
+          VERSION="${VERSION#v}"
+          gh release create "$VERSION" \
+            netra-helm-chart/*.tgz \
             --generate-notes \
-            --title "${{ inputs.version_tag }}"
+            --title "$VERSION"
+          echo "Release $VERSION is available."
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
