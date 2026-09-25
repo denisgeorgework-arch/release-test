@@ -7,15 +7,15 @@ on:
           description: 'The target version tag for the release (e.g., 1.2.3, v1.2.3)'
           required: true
           type: string
-
+permissions: {}
 jobs:
   version-check:
     permissions: 
-        contents: read
+      contents: read
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           fetch-depth: 0
 
@@ -29,7 +29,9 @@ jobs:
           echo "Release version: $INPUT_VERSION"
 
           if [ "$CHART_VERSION" != "$INPUT_VERSION" ]; then
-            echo "Version mismatch!"
+            echo "Version mismatch in netra-helm-chart/Chart.yaml!"
+            echo "Expected version: $INPUT_VERSION"
+            echo "Actual chart version: $CHART_VERSION"
             exit 1
           fi
 
@@ -52,21 +54,24 @@ jobs:
     permissions:
         contents: write
     runs-on: ubuntu-latest
+    env:
+      QUAY_REGISTRY: oci://quay.io/testorgkv/
     steps:
 
       - name: Check out code
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           fetch-depth: 0
             
       - name: Setup Helm
-        uses: azure/setup-helm@v5
+        uses: azure/setup-helm@dda3372f752e03dde6b3237bc9431cdc2f7a02a2
         with:
           version: v3.22.0
  
       - name: Package Helm chart
         run: |
           cd netra-helm-chart
+          helm dependency build
           helm package .
           echo "Helm chart packaged successfully"
       
@@ -81,7 +86,7 @@ jobs:
         run: |
           CHART=$(ls netra-helm-chart/*.tgz)
           echo "Pushing chart: $CHART"
-          helm push "$CHART" oci://quay.io/testorgkv/
+          helm push "$CHART" "$QUAY_REGISTRY"
           echo "Helm chart pushed to Quay successfully"
       
       - name: Create GitHub Release
