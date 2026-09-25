@@ -79,7 +79,7 @@ jobs:
         run: |
           CHART=$(ls netra-helm-chart/*.tgz)
           echo "Pushing chart: $CHART"
-          helm push "$CHART" oci://quay.io/netradevelopers/
+          helm push "$CHART" oci://quay.io/testorgkv/
           echo "Helm chart pushed to Quay successfully"
       
       - name: Create GitHub Release
